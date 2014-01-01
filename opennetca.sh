@@ -1,35 +1,41 @@
 #!/bin/sh
 
 #
-# Opennet CA Scripts Variable  File
+# Opennet CA Scripts 
 # Mathias Mahnke, created 2013/12/29
+# Lars Kurse, modified 2013/12/30
 # Opennet Admin Group <admin@opennet-initiative.de>
 #
 
 # stop on error and unset variables
 set -eu
 
+# config file
+CA_CFG=opennetca.cfg
+
 # get current script dir
 CA_HOME="$(dirname $(readlink -f "$0"))"
 
-# CA directories
-CA_BACKUP_DIR="$CA_HOME/.backup"
-CA_CSR_DIR="$CA_HOME/csr"
-CA_CERT_DIR="$CA_HOME/cert"
+# read variables
+. "$CA_HOME/$CA_CFG"
 
-# CA files
-CA_CONFIG_FILE="$CA_HOME/opennet-vpn-user.ca.on_2013.conf"
-CA_INDEX_FILE="$CA_HOME/index.txt"
-CA_SERIAL_FILE="$CA_HOME/serial.txt"
-CA_CRL_FILE="$CA_HOME/crl/vpnuser.crl"
+# build CA directories variables
+CA_BACKUP_DIR="$CA_HOME/$CA_BACKUPDIR"
+CA_CSR_DIR="$CA_HOME/$CA_CSRDIR"
+CA_CERT_DIR="$CA_HOME/$CA_CERTDIR"
+
+# build CA files variables
+CA_CONFIG_FILE="$CA_HOME/$CA_CONFIG"
+CA_INDEX_FILE="$CA_HOME/$CA_INDEXFILE"
+CA_SERIAL_FILE="$CA_HOME/$CA_SERIALFILE"
+CA_CRL_FILE="$CA_HOME/$CA_CRLDIR/$CA_CRLNAME"
 
 # generate random serial for CA_SERIAL_FILE
 get_random_serial() {
 	hexdump -n8 -e '/1 "%02X"' /dev/random
 }
 
-# copy file foo/bar.csr to $CA_BACKUP_DIR/bar_20131231-235959.csr
-# do not complain if source file is missing
+# copy timestamped file to CA_BACKUP_DIR 
 backup_file() {
 	local src_file="$1"
 	local now="$(date "+%Y%m%d-%H%M%S")"
@@ -43,10 +49,11 @@ backup_file() {
 	cp "$src_file" "$CA_BACKUP_DIR/$dest_file"
 }
 
-# retrieve requested action safely (even if no action was given)
+# retrieve requested action 
 ACTION=help
 [ $# -gt 0 ] && ACTION="$1" && shift
 
+# sign cert, revoke cert, generate crl or help
 case "$ACTION" in
 	sign)
 		CSR_FILE="$CA_CSR_DIR/$1.csr"
