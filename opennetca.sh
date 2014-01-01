@@ -1,0 +1,89 @@
+#!/bin/sh
+
+#
+# Opennet CA Scripts Variable  File
+# Mathias Mahnke, created 2013/12/29
+# Opennet Admin Group <admin@opennet-initiative.de>
+#
+
+# stop on error and unset variables
+set -eu
+
+# get current script dir
+CA_HOME="$(dirname $(readlink -f "$0"))"
+
+# CA directories
+CA_BACKUP_DIR="$CA_HOME/.backup"
+CA_CSR_DIR="$CA_HOME/csr"
+CA_CERT_DIR="$CA_HOME/cert"
+
+# CA files
+CA_CONFIG_FILE="$CA_HOME/opennet-vpn-user.ca.on_2013.conf"
+CA_INDEX_FILE="$CA_HOME/index.txt"
+CA_SERIAL_FILE="$CA_HOME/serial.txt"
+CA_CRL_FILE="$CA_HOME/crl/vpnuser.crl"
+
+# generate random serial for CA_SERIAL_FILE
+get_random_serial() {
+	hexdump -n8 -e '/1 "%02X"' /dev/random
+}
+
+# copy file foo/bar.csr to $CA_BACKUP_DIR/bar_20131231-235959.csr
+# do not complain if source file is missing
+backup_file() {
+	local src_file="$1"
+	local now="$(date "+%Y%m%d-%H%M%S")"
+	# insert the current timestamp just before the dot of the file extension 
+        # (foo.csr -> foo_20131231-235959.csr)
+	local dest_file="$(basename "$src_file" | sed "s/\(\.[A-Za-z0-9]\+\)$/_$now\1/")"
+	# non-critical error: source and target are identical (sed expression above failed?)
+	[ "$src_file" = "$dest_file" ] && echo >&2 "Backup of file '$src_file' failed: invalid target file ($dest_file)" && return 0
+	# non-critical error: the source file is missing
+	[ ! -e "$src_file" ] && return 0
+	cp "$src_file" "$CA_BACKUP_DIR/$dest_file"
+}
+
+# retrieve requested action safely (even if no action was given)
+ACTION=help
+[ $# -gt 0 ] && ACTION="$1" && shift
+
+case "$ACTION" in
+	sign)
+		CSR_FILE="$CA_CSR_DIR/$1.csr"
+		CERT_FILE="$CA_CERT_DIR/$1.crt"
+		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
+		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
+		get_random_serial > "$CA_SERIAL_FILE"
+		openssl ca -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE"
+		backup_file "$CSR_FILE"
+		backup_file "$CERT_FILE"
+		backup_file "$CA_INDEX_FILE"
+		;;
+	revoke)
+		CERT_FILE="$CA_CERT_DIR/$1.crt"
+		[ ! -e "$CERT_FILE" ] && echo >&2 "Error - CRT file not found: $CERT_FILE" && exit 2
+		openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
+		backup_file "$CERT_FILE"
+		backup_file "$CA_INDEX_FILE"
+		;;
+	crl)
+		openssl ca -config "$CA_CONFIG_FILE" -gencrl -out "$CA_CRL_FILE"
+		backup_file "$CA_CRL_FILE"
+		backup_file "$CA_INDEX_FILE"
+		;;
+	help|--help)
+		echo "Usage: $(basename "$0")"
+		echo "	sign CSR_NAME     - sign a certificate request"
+		echo "	revoke CERT_NAME  - revoke a certificate"
+		echo "	crl               - generate revocation list"
+		echo "	help              - show this help"
+		;;
+	*)
+		echo >&2 "Invalid action: $ACTION"
+		"$0" >&2 help
+		exit 1
+		;;
+ esac
+
+exit 0
+
