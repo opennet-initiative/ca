@@ -12,6 +12,7 @@ set -eu
 
 # config file
 CA_CFG=opennetca.cfg
+CA_LOG=opennetca.log
 
 # get current script dir
 CA_HOME="$(dirname $(readlink -f "$0"))"
@@ -60,11 +61,13 @@ case "$ACTION" in
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
 		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
-		get_random_serial > "$CA_SERIAL_FILE"
+		CERT_SERIAL="$(get_random_serial)
+		"$CERT_SERIAL" > "$CA_SERIAL_FILE"
 		openssl ca -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE"
 		backup_file "$CSR_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
+		"$(date): $CA_CSR_DIR/$1.csr signed, serial $CERT_SERIAL" >> "$CA_HOME/$CA_LOG"
 		;;
 	revoke)
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
@@ -72,6 +75,7 @@ case "$ACTION" in
 		openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
+		"$(date): $CA_CERT_DIR/$1.crt revoked" >> "$CA_HOME/$CA_LOG"	
 		;;
 	crl)
 		openssl ca -config "$CA_CONFIG_FILE" -gencrl -out "$CA_CRL_FILE"

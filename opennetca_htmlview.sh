@@ -3,6 +3,7 @@
 #
 # Opennet CA Scripts 
 # Mathias Mahnke, created 2013/12/29
+# Lars Kurse, modified 2013/12/30
 # Opennet Admin Group <admin@opennet-initiative.de>
 #
 
@@ -103,12 +104,12 @@ do
 			data=(${field//=/ })
 			key=(${data[0]})
 			value=(${data[1]})
-			case $key in
-				O) cert_o=$value 
+			case "$key" in
+				O) cert_o="$value"
 					;;
-				CN) cert_cn=$value 
+				CN) cert_cn="$value"
 					;;
-				emailAddress) cert_mail=$value 
+				emailAddress) cert_mail="$value"
 					;;
 			esac
 		fi	
@@ -120,7 +121,7 @@ do
 	echo "<td>$cert_valid ($cert_diff days)</td>"
 	echo "<td>$cert_serial</td>"
 	echo "<td>$cert_cn</td>"
-	if [[ OUTPUT_HIDE ]]
+	if "$OUTPUT_HIDE"
 	then
 		echo "<td><i>hidden</i></td>"
 		echo "<td><i>hidden</i></td>"
@@ -134,17 +135,14 @@ done <"$CA_INDEX_FILE"
 # table footer
 echo "</table>"
 
-# page foote
-echo "<p>Last Update: "
-echo $(date)
-echo "</p>"
-echo "<p>"
-echo "Back to <a href="/">Opennet CA</a>."
-echo "</p>"
-echo "<p>"
-echo "<img src="Opennet_logo_quer.gif">"
-echo "</p>"
-echo "</body>"
-echo "</html>"
+# page footer
+cat <<-EOF
+	<p>Last Update: $(date)</p>
+	<p>Back to <a href="/">Opennet CA</a>.</p>
+	<p><img src="Opennet_logo_quer.gif"></p>
+	</body>
+	</html>
+EOF
 
 exit 0
+
