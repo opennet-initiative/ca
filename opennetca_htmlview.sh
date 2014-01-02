@@ -87,12 +87,22 @@ do
 	cert_status=${output[0]//V/Signed}
 	cert_status=${cert_status//R/Revoked}
 	# prepare cert valid
-	cert_valid=${output[1]//Z/}
+	if [ "$cert_status" == "Revoked" ]
+	then
+		cert_valid=${output[2]//Z/}
+	else
+		cert_valid=${output[1]//Z/}
+	fi
 	cert_valid="20${cert_valid:0:2}-${cert_valid:2:2}-${cert_valid:4:2}"
 	# prepare cert diff in days
 	cert_diff=$(((`date -u -d "${cert_valid}" "+%s"` - `date -u "+%s"`)/86400))
 	# prepare cert serial
-	cert_serial=(${output[2]})
+	if [ "$cert_status" == "Revoked" ]
+	then
+		cert_serial=${output[3]}
+	else
+		cert_serial=${output[2]}
+	fi
 	# prepare cert DN parts -> O / SN / mail
 	cert_o=""
 	cert_cn=""
@@ -102,8 +112,8 @@ do
 		if [[ "$field" =~ "=" ]]
 		then
 			data=(${field//=/ })
-			key=(${data[0]})
-			value=(${data[1]})
+			key=${data[0]}
+			value=${data[1]}
 			case "$key" in
 				O) cert_o="$value"
 					;;

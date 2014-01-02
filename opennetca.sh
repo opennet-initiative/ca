@@ -61,21 +61,29 @@ case "$ACTION" in
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
 		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
-		CERT_SERIAL="$(get_random_serial)
-		"$CERT_SERIAL" > "$CA_SERIAL_FILE"
+		CERT_SERIAL="$(get_random_serial)"
+		echo "$CERT_SERIAL" > "$CA_SERIAL_FILE"
 		openssl ca -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE"
 		backup_file "$CSR_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
-		"$(date): $CA_CSR_DIR/$1.csr signed, serial $CERT_SERIAL" >> "$CA_HOME/$CA_LOG"
+		echo "$(date): $CA_CSR_DIR/$1.csr signed, serial $CERT_SERIAL" >> "$CA_HOME/$CA_LOG"
 		;;
 	revoke)
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CERT_FILE" ] && echo >&2 "Error - CRT file not found: $CERT_FILE" && exit 2
-		openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
-		backup_file "$CERT_FILE"
-		backup_file "$CA_INDEX_FILE"
-		"$(date): $CA_CERT_DIR/$1.crt revoked" >> "$CA_HOME/$CA_LOG"	
+		echo "ATTENTION - this action can not been reverted."
+		echo "Are you sure to revoke $CERT_FILE (yes/no)? "
+		read REPLY
+		if [ "$REPLY" = "yes" ]
+		then
+			openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
+			backup_file "$CERT_FILE"
+			backup_file "$CA_INDEX_FILE"
+			echo "$(date): $CA_CERT_DIR/$1.crt revoked" >> "$CA_HOME/$CA_LOG"	
+		else
+			echo "Revocation aborted."
+		fi
 		;;
 	crl)
 		openssl ca -config "$CA_CONFIG_FILE" -gencrl -out "$CA_CRL_FILE"
