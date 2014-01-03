@@ -97,13 +97,10 @@ case "$ACTION" in
 		CSR_FILE="$CA_CSR_DIR/$1.csr"
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
-		#[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
+		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
 		CSR_SUBJECT="$(openssl req -subject -noout -in $CSR_FILE)"
 		CSR_CN="$(get_cn_from_subject $CSR_SUBJECT)"
 		CSR_MATCH="$(match_string_array "$CSR_CN" "$CA_CSRCN")"
-		echo "cn = $CSR_CN"
-		echo "ca = $CA_CSRCN"
-		echo "match = $CSR_MATCH"
 		[ "$CSR_MATCH" = "unmatched" ] && echo >&2 "Error - CSR CN filter mismatch, found $CSR_CN, need $CA_CSRCN" && exit 4
 		CERT_SERIAL="$(get_random_serial)"
 		echo "$CERT_SERIAL" > "$CA_SERIAL_FILE"
@@ -111,7 +108,7 @@ case "$ACTION" in
 		backup_file "$CSR_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
-		echo "$(date): $CA_CSR_DIR/$1.csr signed, serial $CERT_SERIAL" >> "$CA_HOME/$CA_LOG"
+		echo "$(date): $CA_CSR_DIR/$1.csr signed, cn $CSR_CN, serial $CERT_SERIAL" >> "$CA_HOME/$CA_LOG"
 		;;
 	revoke)
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
