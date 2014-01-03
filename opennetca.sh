@@ -10,12 +10,12 @@
 # stop on error and unset variables
 set -eu
 
-# config file
-CA_CFG=opennetca.cfg
-CA_LOG=opennetca.log
-
 # get current script dir
 CA_HOME="$(dirname $(readlink -f "$0"))"
+
+# config file
+CA_CFG="$CA_HOME/opennetca.cfg"
+CA_LOG="$CA_HOME/opennetca.log"
 
 # read variables
 . "$CA_HOME/$CA_CFG"
@@ -57,20 +57,15 @@ get_cn_from_subject() {
 	echo ""
 }
 
-# match string containment against array
-match_string_array() {
-	local string="$1"
+# test if at least one of the array tokens (separated by whitespace) matches the regular expression
+match_string_in_array() {
+	local regex="$1"
 	local stringarray="$2"
-	# populate output array by / delimiter
-        local output=(${stringarray// / })
-	local field
-        for field in "${output[@]}"
-        do
-		# string matched
-		[[ "$string" =~ "$field" ]] && echo "matched $string to $field" && return 
+	for token in $stringarray
+	do
+		[[ "$token" =~ "$regex" ]] && return 0
 	done
-	# string unmatched
-	echo "unmatched"
+	return 1
 }
 
 # copy timestamped file to CA_BACKUP_DIR 
@@ -100,27 +95,26 @@ case "$ACTION" in
 		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
 		CSR_SUBJECT="$(openssl req -subject -noout -in $CSR_FILE)"
 		CSR_CN="$(get_cn_from_subject $CSR_SUBJECT)"
-		CSR_MATCH="$(match_string_array "$CSR_CN" "$CA_CSRCN")"
-		[ "$CSR_MATCH" = "unmatched" ] && echo >&2 "Error - CSR CN filter mismatch, found $CSR_CN, need $CA_CSRCN" && exit 4
+		match_string_in_array "$CSR_CN" "$CA_CSRCN" || { echo >&2 "Error - CSR CN filter mismatch, found '$CSR_CN', need '$CA_CSRCN'" && exit 4; }
 		CERT_SERIAL="$(get_random_serial)"
 		echo "$CERT_SERIAL" > "$CA_SERIAL_FILE"
 		openssl ca -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE"
 		backup_file "$CSR_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
-		echo "$(date): $CA_CSR_DIR/$1.csr signed, cn $CSR_CN, serial $CERT_SERIAL" >> "$CA_HOME/$CA_LOG"
+		echo "$(date): $CA_CSR_DIR/$1.csr signed, cn $CSR_CN, serial $CERT_SERIAL" >> "$CA_LOG"
 		;;
 	revoke)
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CERT_FILE" ] && echo >&2 "Error - CRT file not found: $CERT_FILE" && exit 2
 		echo "ATTENTION - this action can not been reverted."
-		echo "Are you sure to revoke $CERT_FILE (yes/no)? "
+		echo -n "Are you sure to revoke $CERT_FILE (yes/no)? "
 		read REPLY
 		[ "$REPLY" != "yes" ] && echo "Revocation aborted." && exit 0
 		openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
-		echo "$(date): $CA_CERT_DIR/$1.crt revoked" >> "$CA_HOME/$CA_LOG"	
+		echo "$(date): $CA_CERT_DIR/$1.crt revoked" >> "$CA_LOG"	
 		;;
 	crl)
 		openssl ca -config "$CA_CONFIG_FILE" -gencrl -out "$CA_CRL_FILE"
