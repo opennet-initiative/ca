@@ -72,6 +72,15 @@ match_string_in_array() {
 	return 1
 }
 
+# match string containment against file and return filtered lines
+match_string_in_file() {
+	local string="$1"
+	local file="$2"
+	local exclude="$3"
+	local lines
+	echo "$(grep "$string" "$file" | grep -v "$exclude")"
+}
+
 # copy timestamped file to CA_BACKUP_DIR 
 backup_file() {
 	local src_file="$1"
@@ -93,7 +102,7 @@ send_mail() {
 	local message="$3"
 	local file="$4"
 	local filename="$(basename $file)"
-	echo -n "Send mail to $to... "
+	echo -n "Send mail to '$to'... "
 	( uuencode "$file" "$filename"; echo -e "$message" ) | mailx -s "$subject" "$to" && echo "done." || "failed."
 }
 
@@ -107,11 +116,13 @@ case "$ACTION" in
 		CSR_FILE="$CA_CSR_DIR/$1.csr"
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
-		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
 		CSR_SUBJECT="$(openssl req -subject -noout -in $CSR_FILE)"
 		CSR_CN="$(get_key_from_subject "$CSR_SUBJECT" "CN")"
 		CSR_MAIL="$(get_key_from_subject "$CSR_SUBJECT" "emailAddress")"
-		match_string_in_array "$CSR_CN" "$CA_CSRCN" || { echo >&2 "Error - CSR CN filter mismatch, found '$CSR_CN', need '$CA_CSRCN'" && exit 4; }
+		CSR_MATCH="$(match_string_in_file "$CSR_CN" "$CA_INDEX_FILE" "^R")"
+		[ -n "$CSR_MATCH" ] && echo -e >&2 "Error - CSR CN found in certificate list, revoke old cert first:\n$CSR_MATCH" && exit 3;
+		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE, same cert signed or revoked?; if new and unsigned check your CSR filename" && exit 4
+		match_string_in_array "$CSR_CN" "$CA_CSRCN" || { echo >&2 "Error - CSR CN filter mismatch, found '$CSR_CN', need '$CA_CSRCN'" && exit 5; }
 		CERT_SERIAL="$(get_random_serial)"
 		echo "$CERT_SERIAL" > "$CA_SERIAL_FILE"
 		openssl ca -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE"
@@ -119,7 +130,7 @@ case "$ACTION" in
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
 		echo "$(date): $CSR_FILE signed, cn $CSR_CN, serial $CERT_SERIAL, mail $CSR_MAIL" >> "$CA_LOG"
-		send_mail "$CA_MAILTO $CSR_MAIL" "$CA_MAILSUBJECT: Certificate signed / Zertifikat signiert" "$CA_MAILSIGN\n\ncommonName: $CSR_CN\nserial: $CERT_SERIAL" "$CERT_FILE"
+		send_mail "$CA_MAILTO, $CSR_MAIL" "$CA_MAILSUBJECT: Certificate signed / Zertifikat signiert" "$CA_MAILSIGN\n\ncommonName: $CSR_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
 		;;
 	revoke)
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
@@ -142,7 +153,7 @@ case "$ACTION" in
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
 		echo "$(date): $CERT_FILE revoked, cn $CERT_CN, serial $CERT_SERIAL, mail $CERT_MAIL" >> "$CA_LOG"
-		send_mail "$CA_MAILTO $CERT_MAIL" "$CA_MAILSUBJECT: Certificate revoked / Zertifikat zurueckgezogen" "$CA_MAILREVOKE\n\ncommonName: $CERT_CN\nserial: $CERT_SERIAL" "$CERT_FILE"
+		send_mail "$CA_MAILTO, $CERT_MAIL" "$CA_MAILSUBJECT: Certificate revoked / Zertifikat zurueckgezogen" "$CA_MAILREVOKE\n\ncommonName: $CERT_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
 		;;
 	crl)
 		openssl ca -config "$CA_CONFIG_FILE" -gencrl -out "$CA_CRL_FILE"
