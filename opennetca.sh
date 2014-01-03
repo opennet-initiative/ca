@@ -160,11 +160,21 @@ case "$ACTION" in
 		backup_file "$CA_CRL_FILE"
 		backup_file "$CA_INDEX_FILE"
 		;;
+	list)
+		CERT_CN="CN=$1"
+		echo -n "Searching for '$CERT_CN'... "
+		CERT_REVOKED="$(match_string_in_file "$CERT_CN" "$CA_INDEX_FILE" "^V")"
+		CERT_ACTIVE="$(match_string_in_file "$CERT_CN" "$CA_INDEX_FILE" "^R")"
+		echo "done."
+		[ -n "$CERT_REVOKED" ] && echo -e "Revoked certificates:\n$CERT_REVOKED" || echo "No revoked certificates found."
+		[ -n "$CERT_ACTIVE" ] && echo -e "Active certificates:\n$CERT_ACTIVE" || echo "No active certificates found."
+		;;
 	help|--help)
 		echo "Usage: $(basename "$0")"
 		echo "	sign CSR_NAME     - sign a certificate request"
 		echo "	revoke CERT_NAME  - revoke a certificate"
 		echo "	crl               - generate revocation list"
+		echo "  list CERT_CN      - list certs for common name"
 		echo "	help              - show this help"
 		;;
 	*)
