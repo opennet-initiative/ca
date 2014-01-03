@@ -36,12 +36,13 @@ get_random_serial() {
 	hexdump -n8 -e '/1 "%02X"' /dev/random
 }
 
-# parse CN from openssl subject string
-get_cn_from_subject() {
+# parse key-value from openssl subject string
+get_key_from_subject() {
 	local subject="$1"
+	local searchkey="$2"
 	# populate output array by / delimiter
 	local output=(${subject//\// })
-	# iterate array to find CN
+	# iterate array to find key
 	local field
 	for field in "${output[@]}"
 	do
@@ -49,11 +50,11 @@ get_cn_from_subject() {
 		then
 			local data=(${field//=/ })
 			local key="${data[0]}"
-			# CN found, return the value
-			[ "$key" = "CN" ] && echo "${data[1]}" && return
+			# key found, return the value
+			[ "$key" = "$searchkey" ] && echo "${data[1]}" && return
 		fi
 	done
-	# CN not found, return empty string
+	# key not found, return empty string
 	echo ""
 }
 
@@ -85,6 +86,17 @@ backup_file() {
 	cp "$src_file" "$CA_BACKUP_DIR/$dest_file"
 }
 
+# compose and send out a mail with attachment
+send_mail() {
+	local to="$1"
+	local subject="$2"
+	local message="$3"
+	local file="$4"
+	local filename="$(basename $file)"
+	echo -n "Send mail to $to... "
+	( uuencode "$file" "$filename"; echo -e "$message" ) | mailx -s "$subject" "$to" && echo "done." || "failed."
+}
+
 # retrieve requested action 
 ACTION=help
 [ $# -gt 0 ] && ACTION="$1" && shift
@@ -97,7 +109,8 @@ case "$ACTION" in
 		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
 		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
 		CSR_SUBJECT="$(openssl req -subject -noout -in $CSR_FILE)"
-		CSR_CN="$(get_cn_from_subject "$CSR_SUBJECT")"
+		CSR_CN="$(get_key_from_subject "$CSR_SUBJECT" "CN")"
+		CSR_MAIL="$(get_key_from_subject "$CSR_SUBJECT" "emailAddress")"
 		match_string_in_array "$CSR_CN" "$CA_CSRCN" || { echo >&2 "Error - CSR CN filter mismatch, found '$CSR_CN', need '$CA_CSRCN'" && exit 4; }
 		CERT_SERIAL="$(get_random_serial)"
 		echo "$CERT_SERIAL" > "$CA_SERIAL_FILE"
@@ -105,27 +118,31 @@ case "$ACTION" in
 		backup_file "$CSR_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
-		echo "$(date): $CSR_FILE signed, cn $CSR_CN, serial $CERT_SERIAL" >> "$CA_LOG"
+		echo "$(date): $CSR_FILE signed, cn $CSR_CN, serial $CERT_SERIAL, mail $CSR_MAIL" >> "$CA_LOG"
+		send_mail "$CA_MAILTO $CSR_MAIL" "$CA_MAILSUBJECT: Certificate signed / Zertifikat signiert" "$CA_MAILSIGN\n\ncommonName: $CSR_CN\nserial: $CERT_SERIAL" "$CERT_FILE"
 		;;
 	revoke)
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CERT_FILE" ] && echo >&2 "Error - CRT file not found: $CERT_FILE" && exit 2
 		CERT_SUBJECT="$(openssl x509 -subject -noout -in $CERT_FILE)"
-		CERT_CN="$(get_cn_from_subject "$CERT_SUBJECT")"		
+		CERT_CN="$(get_key_from_subject "$CERT_SUBJECT" "CN")"
+		CERT_MAIL="$(get_key_from_subject "$CERT_SUBJECT" "emailAddress")"	
 		CERT_SERIAL="$(openssl x509 -serial -noout -in $CERT_FILE)"
 		CERT_SERIAL="${CERT_SERIAL##serial=}"
 		echo "ATTENTION - this action can not been reverted."
 		echo "The file details are as follows"
-		echo "filename   : $CERT_FILE"
-		echo "commonName : $CERT_CN" 
-		echo "serial     : $CERT_SERIAL"
+		echo "filename     : $CERT_FILE"
+		echo "commonName   : $CERT_CN"
+		echo "emailAddress : $CERT_MAIL" 
+		echo "serial       : $CERT_SERIAL"
 		echo -n "Are you sure to revoke this certificate (yes/no)? "
 		read REPLY
 		[ "$REPLY" != "yes" ] && echo "Revocation aborted." && exit 0
 		openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
-		echo "$(date): $CERT_FILE revoked, cn $CERT_CN, serial $CERT_SERIAL" >> "$CA_LOG"	
+		echo "$(date): $CERT_FILE revoked, cn $CERT_CN, serial $CERT_SERIAL, mail $CERT_MAIL" >> "$CA_LOG"
+		send_mail "$CA_MAILTO $CERT_MAIL" "$CA_MAILSUBJECT: Certificate revoked / Zertifikat zurueckgezogen" "$CA_MAILREVOKE\n\ncommonName: $CERT_CN\nserial: $CERT_SERIAL" "$CERT_FILE"
 		;;
 	crl)
 		openssl ca -config "$CA_CONFIG_FILE" -gencrl -out "$CA_CRL_FILE"
