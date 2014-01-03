@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # Opennet CA Scripts 
@@ -36,6 +36,43 @@ get_random_serial() {
 	hexdump -n8 -e '/1 "%02X"' /dev/random
 }
 
+# parse CN from openssl subject string
+get_cn_from_subject() {
+	local subject="$1"
+	# populate output array by / delimiter
+	local output=(${subject//\// })
+	# iterate array to find CN
+	local field
+	for field in "${output[@]}"
+	do
+		if [[ "$field" =~ "=" ]]
+		then
+			local data=(${field//=/ })
+			local key="${data[0]}"
+			# CN found, return the value
+			[ "$key" = "CN" ] && echo "${data[1]}" && return
+		fi
+	done
+	# CN not found, return empty string
+	echo ""
+}
+
+# match string containment against array
+match_string_array() {
+	local string="$1"
+	local stringarray="$2"
+	# populate output array by / delimiter
+        local output=(${stringarray// / })
+	local field
+        for field in "${output[@]}"
+        do
+		# string matched
+		[[ "$string" =~ "$field" ]] && echo "matched $string to $field" && return 
+	done
+	# string unmatched
+	echo "unmatched"
+}
+
 # copy timestamped file to CA_BACKUP_DIR 
 backup_file() {
 	local src_file="$1"
@@ -60,7 +97,14 @@ case "$ACTION" in
 		CSR_FILE="$CA_CSR_DIR/$1.csr"
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
-		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
+		#[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE" && exit 3
+		CSR_SUBJECT="$(openssl req -subject -noout -in $CSR_FILE)"
+		CSR_CN="$(get_cn_from_subject $CSR_SUBJECT)"
+		CSR_MATCH="$(match_string_array "$CSR_CN" "$CA_CSRCN")"
+		echo "cn = $CSR_CN"
+		echo "ca = $CA_CSRCN"
+		echo "match = $CSR_MATCH"
+		[ "$CSR_MATCH" = "unmatched" ] && echo >&2 "Error - CSR CN filter mismatch, found $CSR_CN, need $CA_CSRCN" && exit 4
 		CERT_SERIAL="$(get_random_serial)"
 		echo "$CERT_SERIAL" > "$CA_SERIAL_FILE"
 		openssl ca -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE"
@@ -75,15 +119,11 @@ case "$ACTION" in
 		echo "ATTENTION - this action can not been reverted."
 		echo "Are you sure to revoke $CERT_FILE (yes/no)? "
 		read REPLY
-		if [ "$REPLY" = "yes" ]
-		then
-			openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
-			backup_file "$CERT_FILE"
-			backup_file "$CA_INDEX_FILE"
-			echo "$(date): $CA_CERT_DIR/$1.crt revoked" >> "$CA_HOME/$CA_LOG"	
-		else
-			echo "Revocation aborted."
-		fi
+		[ "$REPLY" != "yes" ] && echo "Revocation aborted." && exit 0
+		openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
+		backup_file "$CERT_FILE"
+		backup_file "$CA_INDEX_FILE"
+		echo "$(date): $CA_CERT_DIR/$1.crt revoked" >> "$CA_HOME/$CA_LOG"	
 		;;
 	crl)
 		openssl ca -config "$CA_CONFIG_FILE" -gencrl -out "$CA_CRL_FILE"
