@@ -29,19 +29,20 @@ CA_CRLURL="$CA_URL/$CA_CRLNAME"
 
 # download crl
 echo -n "Download $CA_CRLURL... "
-(wget -q "$CA_CRLURL" -O "$CA_CRLFILETMP") || { echo && echo >&2 "Error: download of CRL file '$CA_CRLNAME' failed" && (rm "$CA_CRLFILETMP") && exit 5; }
+wget -q "$CA_CRLURL" -O "$CA_CRLFILETMP" || { echo && echo >&2 "Error: download of CRL file '$CA_CRLNAME' failed" && rm "$CA_CRLFILETMP"; exit 5; }
 echo "done."
 
 # verfiy crl
 echo -n "Verify $CA_CRLNAME... "
-(openssl crl -in "$CA_CRLFILETMP" -CAfile "$CA_CRTFILE" -noout >/dev/null 2>&1) || { echo && echo >&2 "Error: CRL verify against CA '$CA_CRLFILE' failed" && (rm "$CA_CRLFILETMP") && exit 6; }
+openssl crl -in "$CA_CRLFILETMP" -CAfile "$CA_CRTFILE" -noout >/dev/null 2>&1 || { echo && echo >&2 "Error: CRL verify against CA '$CA_CRLFILE' failed" && rm "$CA_CRLFILETMP"; exit 6; }
 echo "done."
 
 # copy tmp file to final location
 echo -n "Activate $CA_CRLNAME... "
-(mv "$CA_CRLFILETMP" "$CA_CRLFILE") || { echo && echo >&2 "Error: move of '$CA_CRLFILETMP' to '$CA_CRLFILE' failed" && (rm "$CA_CRLFILETMP") && exit 7; }
+mv "$CA_CRLFILETMP" "$CA_CRLFILE" || { echo && echo >&2 "Error: move of '$CA_CRLFILETMP' to '$CA_CRLFILE' failed" && rm "$CA_CRLFILETMP"; exit 7; }
 echo "done."
 
 # finish
 echo "Finished."
 exit 0
+
