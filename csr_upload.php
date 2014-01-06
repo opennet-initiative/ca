@@ -1,7 +1,7 @@
 <?php
 // config variables
-//$debug = false;
-$debug = true;
+$debug = false;
+//$debug = true;
 $allowedExts = array("csr");
 $allowedType = array("application/octet-stream", "application/pkcs10");
 $uploadFolder = "/var/www/csr_upload";
@@ -30,7 +30,7 @@ $cnFilter = array(
 // debug only (do not show to the user in normal operation)
 if ($debug) echo "Debugging: enabled<br/>";
 // get file data
-$name = filter_var($_FILES["file"]["name"], FILTER_SANITIZE_STRING);
+$name = $_FILES["file"]["name"];
 $type = $_FILES["file"]["type"];
 $size = $_FILES["file"]["size"];
 $store = $_FILES["file"]["tmp_name"];
@@ -38,7 +38,7 @@ $error = $_FILES["file"]["error"];
 // prepare variables
 $extension = end(explode(".", $name));
 // inform user
-echo "Upload: " . $name . "<br/>";
+echo "File / Datei: " . $name . "<br/>";
 // debug only (do not show to the user in normal operation)
 if ($debug) {
   echo "Type: " . $type . "<br/>";
@@ -83,8 +83,8 @@ if (in_array($extension, $allowedExts)
     }
     // inform user about content
     echo "Name: " . $subject_o . "<br/>";
-    echo "Node: " . $subject_cn . "<br/>";
-    echo "Mail: " . $subject_mail . "<br/>";
+    echo "Node / Teilnehmer: " . $subject_cn . "<br/>";
+    echo "E-Mail: " . $subject_mail . "<br/>";
     // process content status
     if ($err == 0) 
     {
@@ -106,7 +106,7 @@ if (in_array($extension, $allowedExts)
       if ($err2 == 0)
       {
         // prepare filename
-        $hash = $cnFilterValue . "_" . $subject_cn . "_" . $digest_short . ".csr";
+        $hash = $cnFilterValue . "_" . filter_var($subject_cn, FILTER_SANITIZE_STRING) . "_" . $digest_short . ".csr";
         $upload = $uploadFolder . "/" . $hash;
         // debug only (do not show to the user in normal operation)
         if ($debug) 
@@ -117,7 +117,7 @@ if (in_array($extension, $allowedExts)
         // move file to csr upload folder
         if (file_exists($upload))
         {
-          echo "<p><b>Error</b>: " . $hash . " already exists<br/><b>Fehler</b>: " . $hash . " existiert bereits</p>";
+          echo "<p><b>Error</b>: Request '" . $hash . "' already exists<br/><b>Fehler</b>: Anfrage '" . $hash . "' existiert bereits</p>";
         }
         else
         {
