@@ -25,10 +25,11 @@ $cnFilter = array(
     <div style="background-color:#eeeeee;padding:5px;width:450px">
     Your file has been arrived. Deine Datei ist angekommen. 
     <p></p>
+    <table>
 
 <?php
 // debug only (do not show to the user in normal operation)
-if ($debug) echo "Debugging: enabled<br/>";
+if ($debug) echo "<tr><td>Debugging:</td><td>Enabled</td></tr>";
 // get file data
 $name = $_FILES["file"]["name"];
 $type = $_FILES["file"]["type"];
@@ -38,13 +39,13 @@ $error = $_FILES["file"]["error"];
 // prepare variables
 $extension = end(explode(".", $name));
 // inform user
-echo "File / Datei: " . $name . "<br/>";
+echo "<tr><td>File / Datei:</td><td>" . $name . "</td></tr>";
 // debug only (do not show to the user in normal operation)
 if ($debug) {
-  echo "Type: " . $type . "<br/>";
-  echo "Extension: " . $extension . "<br/>";
-  echo "Size: " . $size . " Byte<br/>";
-  echo "Temp stored: " . $store . "</br>";
+  echo "<tr><td>Type:</td><td>" . $type . "</td></tr>";
+  echo "<tr><td>Extension:</td><td>" . $extension . "</td></tr>";
+  echo "<tr><td>Size:</td><td>" . $size . " Byte</td></tr>";
+  echo "<tr><td>Temp stored:</td><td>" . $store . "</td></tr>";
 }
 // process file
 if (in_array($extension, $allowedExts) 
@@ -54,7 +55,7 @@ if (in_array($extension, $allowedExts)
   // check for errors
   if ($error > 0)
   {
-    echo "<b>Error</b>: " . $error. "<br/>";
+    echo "<p><b>Error / Fehler</b>: ID" . $error. "</p>";
   }
   else
   {
@@ -78,13 +79,13 @@ if (in_array($extension, $allowedExts)
     }
     // debug only (do not show to the user in normal operation)
     if ($debug) {
-      echo "Digest: " . $digest . " (SHA-256)<br/>";
-      echo "Digest: " . $digest_short . " (CRC-32)<br/>";
+      //echo "<tr><td>Digest:</td><td>" . $digest . " (SHA-256)</td></tr>";
+      echo "<tr><td>Digest:</td><td>" . $digest_short . " (CRC-32)</td></tr>";
     }
     // inform user about content
-    echo "Name: " . $subject_o . "<br/>";
-    echo "Node / Teilnehmer: " . $subject_cn . "<br/>";
-    echo "E-Mail: " . $subject_mail . "<br/>";
+    echo "<tr><td>Name:</td><td>" . $subject_o . "</td></tr>";
+    echo "<tr><td>Node / Teilnehmer:&nbsp;&nbsp; </td><td>" . $subject_cn . "</td></tr>";
+    echo "<tr><td>E-Mail:</td><td>" . $subject_mail . "</td></tr>";
     // process content status
     if ($err == 0) 
     {
@@ -93,7 +94,7 @@ if (in_array($extension, $allowedExts)
       $cn_len = count($cn);
       if ($cn_len > 2) $cn_tail = $cn[$cn_len-2] . "." . $cn[$cn_len-1];
       // debug only (do not show to the user in normal operation)
-      if ($debug) echo "CN Tail: " . $cn_tail . "<br/>";
+      if ($debug) echo "<tr><td>CN Tail:</td><td>" . $cn_tail . "</td></tr>";
       $cnFilterValue = "<i>Error</i>";
       $err2 = -1;
       if (isset($cnFilter[$cn_tail])) 
@@ -102,7 +103,7 @@ if (in_array($extension, $allowedExts)
         $err2++;
       }
       // debug only (do not show to the user in normal operation)
-      if ($debug) echo "CN Filter: " . $cnFilterValue . "<br/>";
+      if ($debug) echo "<tr><td>CN Filter:</td><td>" . $cnFilterValue . "</td></tr>";
       if ($err2 == 0)
       {
         // prepare filename
@@ -111,8 +112,8 @@ if (in_array($extension, $allowedExts)
         // debug only (do not show to the user in normal operation)
         if ($debug) 
         {
-          echo "Hashed Filename: " . $hash . "<br/>";
-          echo "Final stored: " . $upload . "<br/>";
+          echo "<tr><td>Hashed Filename:</td><td>" . $hash . "</td></tr>";
+          echo "<tr><td>Final stored:</td><td>" . $upload . "</td></tr>";
         }
         // move file to csr upload folder
         if (file_exists($upload))
@@ -141,7 +142,8 @@ else
   echo "<p><b>Error</b>: Invalid file. Please only upload CSR files.<br/><b>Fehler</b>: Ung&uuml;ltige Datei. Bitte nur CSR Dateien hochladen.</p>";
 }
 ?>
-    
+
+    </table>
     </div>
     <p>
     Back to / Zur&uuml;ck zu: <a href="../">Opennet CA</a>.
