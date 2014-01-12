@@ -125,7 +125,8 @@ case "$ACTION" in
 		match_string_in_array "$CSR_CN" "$CA_CSRCN" || { echo >&2 "Error - CSR CN filter mismatch, found '$CSR_CN', need '$CA_CSRCN'" && exit 5; }
 		CERT_SERIAL="$(get_random_serial)"
 		echo "$CERT_SERIAL" > "$CA_SERIAL_FILE"
-		openssl ca -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE"
+		openssl ca -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE" || { echo >&2 "Error - Aborted OpenSSL Signing, Error Code $?" && rm "$CERT_FILE"; exit 6; }
+		[ ! -s "$CERT_FILE" ] && echo >&2 "Error - Aborted OpenSSL Signing, CRT file is empty" && rm "$CERT_FILE" && exit 7
 		backup_file "$CSR_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
