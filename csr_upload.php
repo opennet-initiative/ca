@@ -47,6 +47,12 @@ if ($debug) {
   echo "<tr><td>Size:</td><td>" . $size . " Byte</td></tr>";
   echo "<tr><td>Temp stored:</td><td>" . $store . "</td></tr>";
 }
+// get optional data
+$opt_name = $_POST["opt_name"];
+$opt_mail = $_POST["opt_mail"];
+// inform user
+echo "<tr><td>Advisor / Betreuer:</td><td>" . $opt_name . "</td></tr>";
+echo "<tr><td>CC E-Mail :</td><td>" . $opt_mail . "</td></tr>";
 // process file
 if (in_array($extension, $allowedExts) 
   && in_array($type, $allowedType)
@@ -123,6 +129,14 @@ if (in_array($extension, $allowedExts)
         else
         {
           move_uploaded_file($store, $upload);
+          $json = array("name"=>$hash, "subject_o"=>$subject_o, "subject_cn"=>$subject_cn,
+            "subject_mail"=>$subject_mail, "digest"=>$digest, "cn_filter"=>$cnFilterValue,
+            "upload_mail"=>"", "upload_message"=>"", "upload_timestamp"=>time(), 
+            "upload_advisor"=>$opt_name, "upload_ccmail"=>$opt_mail,
+            "status"=>"CSR", "approve_message"=>"", "approve_timestamp"=>"",
+            "sign_message"=>"", "sign_timestamp"=>"", "error_message"=>"", 
+            "error_timestamp"=>"");
+          file_put_contents($upload . ".json", str_replace('\n', '', json_encode($json)));
           echo "<p><b>Success</b>: Stored as " . $hash . "<br/><b>Erfolgreich</b>: Gespeichert als " . $hash . "</p>";
         }
       }
