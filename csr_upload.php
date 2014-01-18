@@ -129,13 +129,17 @@ if (in_array($extension, $allowedExts)
         else
         {
           move_uploaded_file($store, $upload);
-          $json = array("name"=>$hash, "subject_o"=>$subject_o, "subject_cn"=>$subject_cn,
+	  $timestamp = time();
+          $json = array(
+            "meta_type"=>"Opennet_CSR_JSON_v1", "meta_created"=>$timestamp, "meta_updated"=>"",
+            "name"=>$hash, "subject_o"=>$subject_o, "subject_cn"=>$subject_cn,
             "subject_mail"=>$subject_mail, "digest"=>$digest, "cn_filter"=>$cnFilterValue,
-            "upload_mail"=>"", "upload_message"=>"", "upload_timestamp"=>time(), 
+            "upload_mail"=>"", "upload_message"=>"", "upload_timestamp"=>$timestamp, 
             "upload_advisor"=>$opt_name, "upload_ccmail"=>$opt_mail,
             "status"=>"CSR", "approve_message"=>"", "approve_timestamp"=>"",
             "sign_message"=>"", "sign_timestamp"=>"", "error_message"=>"", 
-            "error_timestamp"=>"");
+            "error_timestamp"=>""
+          );
           file_put_contents($upload . ".json", str_replace('\n', '', json_encode($json)));
           echo "<p><b>Success</b>: Stored as " . $hash . "<br/><b>Erfolgreich</b>: Gespeichert als " . $hash . "</p>";
         }
