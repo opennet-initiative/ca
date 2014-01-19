@@ -149,7 +149,7 @@ echo "</table>"
 cat <<-EOF
 	<p>Last Update: $(date)</p>
 	<p>Back to <a href="/">Opennet CA</a>.</p>
-	<p><img src="Opennet_logo_quer.gif"></p>
+	<p><img src="/Opennet_logo_quer.gif"></p>
 	</body>
 	</html>
 EOF
