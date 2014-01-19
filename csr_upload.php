@@ -8,7 +8,8 @@ $uploadFolder = "/var/www/csr_upload";
 $cnFilter = array(
   "aps.on" => "vpnuser",
   "mobile.on" => "vpnuser",
-  "ugw.on" => "vpnugw");
+  "ugw.on" => "vpnugw",
+  "client.on" => "client");
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
