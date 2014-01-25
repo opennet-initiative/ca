@@ -10,6 +10,11 @@ $cnFilter = array(
   "mobile.on" => "vpnuser",
   "ugw.on" => "vpnugw",
   "client.on" => "client");
+$mailto = "csr@opennet-initiative.de";
+$mailfrom = "csr@opennet-initiative.de";
+$mailsubject = "Opennet CSR (upload): Signing Request / Zertifikatsanfrage";
+$mailfooter = "-- \r\nOpennet Initiative e.V.\r\nhttp://www.opennet-initiative.de\r\nCA Status: http://ca.opennet-initiative.de";
+$approveurl = "https://ca.opennet-initiative.de:444/internal/csr_approve.php?";
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
@@ -20,7 +25,7 @@ $cnFilter = array(
   </head>
   <body>
     <h2>Opennet Certification Authority</h2>
-    Welcome. You can upload your Certificate Signing Request (CSR) here.</br>
+    Welcome. You can upload your Certificate Signing Request (CSR) here.<br/>
     Willkommen. Hier kannst du deinen Zertifikatsanfrage (CSR) hochladen.
     <h3>CSR Upload</h3>
     <div style="background-color:#eeeeee;padding:5px;width:450px">
@@ -129,20 +134,27 @@ if (in_array($extension, $allowedExts)
         }
         else
         {
+          // store csr file
           move_uploaded_file($store, $upload);
+          // prepare metadata
 	  $timestamp = time();
           $json = array(
             "meta_type"=>"Opennet_CSR_JSON_v1", "meta_created"=>$timestamp, "meta_updated"=>"",
             "name"=>$hash, "subject_o"=>$subject_o, "subject_cn"=>$subject_cn,
             "subject_mail"=>$subject_mail, "digest"=>$digest, "cn_filter"=>$cnFilterValue,
-            "upload_mail"=>"", "upload_message"=>"", "upload_timestamp"=>$timestamp, 
+            "upload_timestamp"=>$timestamp, 
             "upload_advisor"=>$opt_name, "upload_ccmail"=>$opt_mail,
             "status"=>"CSR", "approve_message"=>"", "approve_timestamp"=>"",
             "sign_message"=>"", "sign_timestamp"=>"", "error_message"=>"", 
             "error_timestamp"=>""
           );
+          // store metadata
           file_put_contents($upload . ".json", str_replace('\n', '', json_encode($json)));
           echo "<p><b>Success</b>: Stored as " . $hash . "<br/><b>Erfolgreich</b>: Gespeichert als " . $hash . "</p>";
+          // send mail to csr team
+          $mailheader = "From: " . $mailfrom . "\r\n";
+	  $mailtext = "A new certificate signing request arrived.\r\nEine neue Zertifikatsanfrage ist eingetroffen.\r\n\r\ncommonName: " . $subject_cn . "\r\ndigest: " . $digest_short . "\r\n\r\napprove: <" . $approveurl . $hash . ">\r\n\r\n" . $mailfooter;
+          mail($mailto, $mailsubject, $mailtext, $mailheader);
         }
       }
       else
@@ -165,10 +177,10 @@ else
     </table>
     </div>
     <p>
-    Back to / Zur&uuml;ck zu: <a href="../">Opennet CA</a>.
+    Back to / Zur&uuml;ck zu: <a href="/">Opennet CA</a>.
     </p>
     <p>
-    <img src="../Opennet_logo_quer.gif">
+    <img src="/Opennet_logo_quer.gif">
     </p>
   </body>
 </html>

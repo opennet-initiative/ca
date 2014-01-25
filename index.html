@@ -14,15 +14,19 @@
     Please select your CSR file. Bitte deine CSR Datei ausw&auml;hlen.
     <p></p>
     <form action="csr_upload.php" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" id="file"><br>
+    <input type="file" name="file" id="file"><br/>
+    <small>
+    <input type="text" name="opt_name" size="30" maxlength="255"> Advisor / Betreuer (Optional)<br/>
+    <input type="text" name="opt_mail" size="30" maxlength="255"> CC E-Mail (Optional)<br/>
     <input type="submit" name="submit" value="Submit / &Uuml;bertragen">
+    </small>
     </form>
     </div>
     <p>
-    Back to / Zur&uuml;ck zu: <a href="../">Opennet CA</a>.
+    Back to / Zur&uuml;ck zu: <a href="/">Opennet CA</a>.
     </p>
     <p>
-    <img src="../Opennet_logo_quer.gif">
+    <img src="/Opennet_logo_quer.gif">
     </p>
   </body>
 </html>
