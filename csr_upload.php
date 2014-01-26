@@ -11,9 +11,9 @@ $cnFilter = array(
   "ugw.on" => "vpnugw",
   "client.on" => "client");
 //$mailto = "csr@opennet-initiative.de";
-$mailto = "ap27@opennet-initiative.de";
-$mailfrom = "csr@opennet-initiative.de";
-$mailsubject = "Opennet CSR (upload): Signing Request / Zertifikatsanfrage";
+$mailto = "csr@opennet-initiative.de";
+$mailfrom = "opennetca@opennet-initiative.de";
+$mailsubject = "Opennet CA (upload): Signing Request / Zertifikatsanfrage";
 $mailfooter = "-- \r\nOpennet Initiative e.V.\r\nhttp://www.opennet-initiative.de\r\nCA Status: http://ca.opennet-initiative.de";
 $approveurl = "https://ca.opennet-initiative.de:444/internal/csr_approve.php?";
 ?>

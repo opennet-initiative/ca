@@ -85,6 +85,10 @@ do
 					echo "failed."
 					echo "$errmsg (${output["name"]})">&2
 					jqcmd=".status=\"Error\" | .error_message=\"$errmsg\" | .error_timestamp=\"$timestamp\""
+					# send error via mail
+					echo -n "Send mail to '$CSR_MAILTO'... "
+					mailtext="$CSR_MAILTEXT\n\nname: ${output["name"]}\nerror: $errmsg\n\n$CSR_MAILFOOTER" 
+					echo -e "$mailtext" | mailx -s "$CSR_MAILSUBJECT" "$CSR_MAILTO" && echo "done." || "failed."
 				else
 					echo "done."
 					jqcmd=".status=\"Signed\" | .sign_message=\"$0\" | .sign_timestamp=\"$timestamp\""
