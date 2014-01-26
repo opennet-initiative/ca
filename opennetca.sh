@@ -112,7 +112,7 @@ ACTION=help
 
 # sign cert, revoke cert, generate crl or help
 case "$ACTION" in
-	sign)
+	sign|sign_batch)
 		CSR_FILE="$CA_CSR_DIR/$1.csr"
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
@@ -125,7 +125,9 @@ case "$ACTION" in
 		match_string_in_array "$CSR_CN" "$CA_CSRCN" || { echo >&2 "Error - CSR CN filter mismatch, found '$CSR_CN', need '$CA_CSRCN'" && exit 5; }
 		CERT_SERIAL="$(get_random_serial)"
 		echo "$CERT_SERIAL" > "$CA_SERIAL_FILE"
-		openssl ca -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE" || { echo >&2 "Error - Aborted OpenSSL Signing, Error Code $?" && rm "$CERT_FILE"; exit 6; }
+		BATCH_CMD=""
+		[ "$ACTION" = "sign_batch" ] && BATCH_CMD="-batch"
+		openssl ca $BATCH_CMD -config "$CA_CONFIG_FILE" -in "$CSR_FILE" -out "$CERT_FILE" || { echo >&2 "Error - Aborted OpenSSL Signing, Error Code $?" && rm "$CERT_FILE"; exit 6; }
 		[ ! -s "$CERT_FILE" ] && echo >&2 "Error - Aborted OpenSSL Signing, CRT file is empty" && rm "$CERT_FILE" && exit 7
 		backup_file "$CSR_FILE"
 		backup_file "$CERT_FILE"
@@ -172,11 +174,12 @@ case "$ACTION" in
 		;;
 	help|--help)
 		echo "Usage: $(basename "$0")"
-		echo "	sign CSR_NAME     - sign a certificate request"
-		echo "	revoke CERT_NAME  - revoke a certificate"
-		echo "	crl               - generate revocation list"
-		echo "  list CERT_CN      - list certs for common name"
-		echo "	help              - show this help"
+		echo "	sign CSR_NAME       - sign a certificate request"
+		echo "	sign_batch CSR_NAME - sign in batch mode (non interative)"
+		echo "	revoke CERT_NAME    - revoke a certificate"
+		echo "	crl                 - generate revocation list"
+		echo "	list CERT_CN        - list certs for common name"
+		echo "	help                - show this help"
 		;;
 	*)
 		echo >&2 "Invalid action: $ACTION"

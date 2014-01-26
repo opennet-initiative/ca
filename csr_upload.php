@@ -10,7 +10,8 @@ $cnFilter = array(
   "mobile.on" => "vpnuser",
   "ugw.on" => "vpnugw",
   "client.on" => "client");
-$mailto = "csr@opennet-initiative.de";
+//$mailto = "csr@opennet-initiative.de";
+$mailto = "ap27@opennet-initiative.de";
 $mailfrom = "csr@opennet-initiative.de";
 $mailsubject = "Opennet CSR (upload): Signing Request / Zertifikatsanfrage";
 $mailfooter = "-- \r\nOpennet Initiative e.V.\r\nhttp://www.opennet-initiative.de\r\nCA Status: http://ca.opennet-initiative.de";
@@ -137,10 +138,11 @@ if (in_array($extension, $allowedExts)
           // store csr file
           move_uploaded_file($store, $upload);
           // prepare metadata
+          $csrname = basename($hash, ".csr");
 	  $timestamp = time();
           $json = array(
-            "meta_type"=>"Opennet_CSR_JSON_v1", "meta_created"=>$timestamp, "meta_updated"=>"",
-            "name"=>$hash, "subject_o"=>$subject_o, "subject_cn"=>$subject_cn,
+            "meta_type"=>"Opennet_CSR_JSON_v1", "meta_created"=>$timestamp, 
+            "name"=>$csrname, "subject_o"=>$subject_o, "subject_cn"=>$subject_cn,
             "subject_mail"=>$subject_mail, "digest"=>$digest, "cn_filter"=>$cnFilterValue,
             "upload_timestamp"=>$timestamp, 
             "upload_advisor"=>$opt_name, "upload_ccmail"=>$opt_mail,
@@ -149,11 +151,12 @@ if (in_array($extension, $allowedExts)
             "error_timestamp"=>""
           );
           // store metadata
+          umask(0002);
           file_put_contents($upload . ".json", str_replace('\n', '', json_encode($json)));
           echo "<p><b>Success</b>: Stored as " . $hash . "<br/><b>Erfolgreich</b>: Gespeichert als " . $hash . "</p>";
           // send mail to csr team
           $mailheader = "From: " . $mailfrom . "\r\n";
-	  $mailtext = "A new certificate signing request arrived.\r\nEine neue Zertifikatsanfrage ist eingetroffen.\r\n\r\ncommonName: " . $subject_cn . "\r\ndigest: " . $digest_short . "\r\n\r\napprove: <" . $approveurl . $hash . ">\r\n\r\n" . $mailfooter;
+	  $mailtext = "A new certificate signing request arrived.\r\nEine neue Zertifikatsanfrage ist eingetroffen.\r\n\r\ncommonName: " . $subject_cn . "\r\ndigest: " . $digest_short . "\r\n\r\napprove: <" . $approveurl . $csrname . ">\r\n\r\n" . $mailfooter;
           mail($mailto, $mailsubject, $mailtext, $mailheader);
         }
       }

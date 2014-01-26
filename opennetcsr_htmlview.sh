@@ -89,7 +89,7 @@ do
 			;;
 		"status") 
 			case $value in
-				"CSR") output["action"]="<a href=\"csr_approve.php?${output["name"]}\">Approve CSR</a>"
+				"CSR"|"Error") output["action"]="<a href=\"csr_approve.php?${output["name"]}\">Approve CSR</a>"
 					;;
 				*) output["action"]=""
 					;;
