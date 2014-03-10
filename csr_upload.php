@@ -1,9 +1,12 @@
 <?php
 // config variables
 $debug = false;
-//$debug = true;
+$debug = true;
 $allowedExts = array("csr");
-$allowedType = array("application/octet-stream", "application/pkcs10");
+$allowedType = array(
+  "application/octet-stream", 
+  "application/pkcs10",
+  "text/opennet_csr");
 $uploadFolder = "/var/www/csr_upload";
 $cnFilter = array(
   "aps.on" => "vpnuser",
