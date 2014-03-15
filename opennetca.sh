@@ -109,6 +109,9 @@ send_mail() {
 # retrieve requested action 
 ACTION=help
 [ $# -gt 0 ] && ACTION="$1" && shift
+# retrieve ccmail address if provided
+CCMAIL=""
+[ $# -gt 1 ] && CCMAIL="$2"
 
 # sign cert, revoke cert, generate crl or help
 case "$ACTION" in
@@ -133,9 +136,9 @@ case "$ACTION" in
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
 		echo "$(date): $CSR_FILE signed, cn $CSR_CN, serial $CERT_SERIAL, mail $CSR_MAIL" >> "$CA_LOG"
-		send_mail "$CA_MAILTO, $CSR_MAIL" "$CA_MAILSUBJECT: Certificate signed / Zertifikat signiert" "$CA_MAILSIGN\n\ncommonName: $CSR_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
+		send_mail "$CA_MAILTO, $CSR_MAIL, $CCMAIL" "$CA_MAILSUBJECT: Certificate signed / Zertifikat signiert" "$CA_MAILSIGN\n\ncommonName: $CSR_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
 		;;
-	revoke)
+	revoke|revoke_batch)
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CERT_FILE" ] && echo >&2 "Error - CRT file not found: $CERT_FILE" && exit 2
 		CERT_SUBJECT="$(openssl x509 -subject -noout -in $CERT_FILE)"
@@ -143,20 +146,23 @@ case "$ACTION" in
 		CERT_MAIL="$(get_key_from_subject "$CERT_SUBJECT" "emailAddress")"	
 		CERT_SERIAL="$(openssl x509 -serial -noout -in $CERT_FILE)"
 		CERT_SERIAL="${CERT_SERIAL##serial=}"
-		echo "ATTENTION - this action can not been reverted."
-		echo "The file details are as follows"
-		echo "filename     : $CERT_FILE"
-		echo "commonName   : $CERT_CN"
-		echo "emailAddress : $CERT_MAIL" 
-		echo "serial       : $CERT_SERIAL"
-		echo -n "Are you sure to revoke this certificate (yes/no)? "
-		read REPLY
-		[ "$REPLY" != "yes" ] && echo "Revocation aborted." && exit 0
+		if [ "$ACTION" = "revoke" ]
+		then
+			echo "ATTENTION - this action can not been reverted."
+			echo "The file details are as follows"
+			echo "filename     : $CERT_FILE"
+			echo "commonName   : $CERT_CN"
+			echo "emailAddress : $CERT_MAIL" 
+			echo "serial       : $CERT_SERIAL"
+			echo -n "Are you sure to revoke this certificate (yes/no)? "
+			read REPLY
+			[ "$REPLY" != "yes" ] && echo "Revocation aborted." && exit 0
+		fi
 		openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
 		echo "$(date): $CERT_FILE revoked, cn $CERT_CN, serial $CERT_SERIAL, mail $CERT_MAIL" >> "$CA_LOG"
-		send_mail "$CA_MAILTO, $CERT_MAIL" "$CA_MAILSUBJECT: Certificate revoked / Zertifikat zurueckgezogen" "$CA_MAILREVOKE\n\ncommonName: $CERT_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
+		send_mail "$CA_MAILTO, $CERT_MAIL, $CCMAIL" "$CA_MAILSUBJECT: Certificate revoked / Zertifikat zurueckgezogen" "$CA_MAILREVOKE\n\ncommonName: $CERT_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
 		;;
 	crl)
 		openssl ca -config "$CA_CONFIG_FILE" -gencrl -out "$CA_CRL_FILE"
@@ -174,12 +180,12 @@ case "$ACTION" in
 		;;
 	help|--help)
 		echo "Usage: $(basename "$0")"
-		echo "	sign CSR_NAME       - sign a certificate request"
-		echo "	sign_batch CSR_NAME - sign in batch mode (non interative)"
-		echo "	revoke CERT_NAME    - revoke a certificate"
-		echo "	crl                 - generate revocation list"
-		echo "	list CERT_CN        - list certs for common name"
-		echo "	help                - show this help"
+		echo "	sign CSR_NAME [CCMAIL]       - sign a certificate request"
+		echo "	sign_batch CSR_NAME [CCMAIL] - sign in batch mode (non interative)"
+		echo "	revoke CERT_NAME [CCMAIL]    - revoke a certificate"
+		echo "	crl                          - generate revocation list"
+		echo "	list CERT_CN                 - list certs for common name"
+		echo "	help                         - show this help"
 		;;
 	*)
 		echo >&2 "Invalid action: $ACTION"

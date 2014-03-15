@@ -91,6 +91,8 @@ do
 			case $value in
 				"CSR"|"Error") output["action"]="<a href=\"csr_approve.php?${output["name"]}\">Approve CSR</a>"
 					;;
+				"Signed"|"RevokeError") output["action"]="<a href=\"revoke_approve.php?${output["name"]}\">Revoke Cert</a>"
+					;;
 				*) output["action"]=""
 					;;
 			esac

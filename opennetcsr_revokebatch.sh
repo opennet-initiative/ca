@@ -28,16 +28,16 @@ ACTION=help
 #
 case "$ACTION" in
 	--list)
-		SIGN=false
+		REVOKE=false
 		;;
-	--sign)
-		SIGN=true
+	--revoke)
+		REVOKE=true
 		;;
 	help|--help)
 		echo "Usage: $(basename "$0")"
-		echo "  --list  - show approved signing requests (sign dry run)"
-		echo "  --sign  - sign approved signing requests"
-		echo "  help    - show this help"
+		echo "  --list   - show approved revoke requests (revoke dry run)"
+		echo "  --revoke - process approved revoke requests"
+		echo "  help     - show this help"
 		exit 0
 		;;
 	*)
@@ -67,31 +67,31 @@ do
 		"}")
 			# process csr (any action)
 			echo "Found ${output["name"]} (${output["cn_filter"]})"
-			# start signing (if action choosen)
-			if "$SIGN"; then
-				echo -n "Signing... "
-				signcmd="$CSR_CAPATH/${output["cn_filter"]}/sign_batch.sh"
-				# invoke sign script, redirect output
+			# start revoke (if action choosen)
+			if "$REVOKE"; then
+				echo -n "Revoking... "
+				revokecmd="$CSR_CAPATH/${output["cn_filter"]}/revoke_batch.sh"
+				# invoke revoke script, redirect output
 				exec 3>&1
 				error=false
-				errmsg="$($signcmd ${output["name"]} ${output["upload_ccmail"]} 2>&1 1>&3)" || error=true
+				errmsg="$($revokecmd ${output["name"]} ${output["upload_ccmail"]} 2>&1 1>&3)" || error=true
 				exec 3>&-
 				# filter first line of output and trimm
 				errmsg="$(echo -e $errmsg | head -n1 | xargs)"
 				timestamp=$(date +%s)
-				# check for sign result, prepare new json vars
+				# check for revoke result, prepare new json vars
 				if "$error";
 				then
 					echo "failed."
 					echo "$errmsg (${output["name"]})">&2
-					jqcmd=".status=\"Error\" | .error_message=\"$errmsg\" | .error_timestamp=\"$timestamp\""
+					jqcmd=".status=\"RevokeError\" | .error_message=\"$errmsg\" | .error_timestamp=\"$timestamp\""
 					# send error via mail
 					echo -n "Send mail to '$CSR_MAILTO'... "
-					mailtext="$CSR_MAILTEXT_SIGN\n\nname: ${output["name"]}\nerror: $errmsg\n\n$CSR_MAILFOOTER" 
-					echo -e "$mailtext" | mailx -s "$CSR_MAILSUBJECT_SIGN" "$CSR_MAILTO" && echo "done." || "failed."
+					mailtext="$CSR_MAILTEXT_REVOKE\n\nname: ${output["name"]}\nerror: $errmsg\n\n$CSR_MAILFOOTER" 
+					echo -e "$mailtext" | mailx -s "$CSR_MAILSUBJECT_REVOKE" "$CSR_MAILTO" && echo "done." || "failed."
 				else
 					echo "done."
-					jqcmd=".status=\"Signed\" | .sign_message=\"$0\" | .sign_timestamp=\"$timestamp\""
+					jqcmd=".status=\"Revoked\" | .revoke_message=\"$0\" | .revoke_timestamp=\"$timestamp\""
 				fi
 				# report new status to csr-json file
 				jsonfile="$CSR_CAPATH/${output["cn_filter"]}/csr/${output["name"]}.csr.json"
@@ -102,8 +102,8 @@ do
 			fi
 			;;
 	esac
-done < <({ echo -n "["; for f in $CSR_JSON_FILES; do cat $f; echo -n ","; done; echo -n "]"; echo; } | sed 's/,]$/]/' | jq 'sort_by(.upload_timestamp) | .[] | select(.status=="Approved")' | sed -e 's/"//g' -e 's/,$//' -e 's/  //g') 
+done < <({ echo -n "["; for f in $CSR_JSON_FILES; do cat $f; echo -n ","; done; echo -n "]"; echo; } | sed 's/,]$/]/' | jq 'sort_by(.upload_timestamp) | .[] | select(.status=="RevokeApproved")' | sed -e 's/"//g' -e 's/,$//' -e 's/  //g') 
 
-echo "$counter approved CSR processed"
+echo "$counter approved Revokes processed"
 
 exit 0 
