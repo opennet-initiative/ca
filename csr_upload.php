@@ -14,8 +14,8 @@ $cnFilter = array(
   "ugw.on" => "vpnugw",
   "client.on" => "client");
 //$mailto = "csr@opennet-initiative.de";
-$mailto = "csr@opennet-initiative.de";
-$mailfrom = "opennetca@opennet-initiative.de";
+$mailto = "Opennet CSR Team <csr@opennet-initiative.de>";
+$mailfrom = "Opennet CA <opennetca@opennet-initiative.de>";
 $mailsubject = "Opennet CA (upload): Signing Request / Zertifikatsanfrage";
 $mailfooter = "-- \r\nOpennet Initiative e.V.\r\nhttp://www.opennet-initiative.de\r\nCA Status: http://ca.opennet-initiative.de";
 $approveurl = "https://ca.opennet-initiative.de:444/internal/csr_approve.php?";
@@ -150,8 +150,10 @@ if (in_array($extension, $allowedExts)
             "upload_timestamp"=>$timestamp, 
             "upload_advisor"=>$opt_name, "upload_ccmail"=>$opt_mail,
             "status"=>"CSR", "approve_message"=>"", "approve_timestamp"=>"",
-            "sign_message"=>"", "sign_timestamp"=>"", "error_message"=>"", 
-            "error_timestamp"=>""
+            "sign_message"=>"", "sign_timestamp"=>"", 
+            "revokeapprove_message"=>"", "revokeapprove_timestamp"=>"",
+            "revoke_message"=>"", "revoke_timestamp"=>"",
+            "error_message"=>"", "error_timestamp"=>""
           );
           // store metadata
           umask(0002);

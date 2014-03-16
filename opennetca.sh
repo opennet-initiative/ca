@@ -97,13 +97,15 @@ backup_file() {
 
 # compose and send out a mail with attachment
 send_mail() {
-	local to="$1"
-	local subject="$2"
-	local message="$3"
-	local file="$4"
+	local from="$1"
+	local to="$2"
+	local cc="$3"
+	local subject="$4"
+	local message="$5"
+	local file="$6"
 	local filename="$(basename $file)"
 	echo -n "Send mail to '$to'... "
-	( uuencode "$file" "$filename"; echo -e "$message" ) | mailx -s "$subject" "$to" && echo "done." || "failed."
+	echo -e "$message" | EMAIL="$from" mutt -s "$subject" -a "$file" -c "$cc" -- "$to" && echo "done." || echo "failed."
 }
 
 # retrieve requested action 
@@ -136,7 +138,7 @@ case "$ACTION" in
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
 		echo "$(date): $CSR_FILE signed, cn $CSR_CN, serial $CERT_SERIAL, mail $CSR_MAIL" >> "$CA_LOG"
-		send_mail "$CA_MAILTO, $CSR_MAIL, $CCMAIL" "$CA_MAILSUBJECT: Certificate signed / Zertifikat signiert" "$CA_MAILSIGN\n\ncommonName: $CSR_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
+		send_mail "$CA_MAILFROM" "$CA_MAILTO, $CSR_MAIL" "$CCMAIL" "$CA_MAILSUBJECT: Certificate signed / Zertifikat signiert" "$CA_MAILSIGN\n\ncommonName: $CSR_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
 		;;
 	revoke|revoke_batch)
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
@@ -162,7 +164,7 @@ case "$ACTION" in
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
 		echo "$(date): $CERT_FILE revoked, cn $CERT_CN, serial $CERT_SERIAL, mail $CERT_MAIL" >> "$CA_LOG"
-		send_mail "$CA_MAILTO, $CERT_MAIL, $CCMAIL" "$CA_MAILSUBJECT: Certificate revoked / Zertifikat zurueckgezogen" "$CA_MAILREVOKE\n\ncommonName: $CERT_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
+		send_mail "$CA_MAILFROM" "$CA_MAILTO, $CERT_MAIL" "$CCMAIL" "$CA_MAILSUBJECT: Certificate revoked / Zertifikat zurueckgezogen" "$CA_MAILREVOKE\n\ncommonName: $CERT_CN\nserial: $CERT_SERIAL\n\n$CA_MAILFOOTER" "$CERT_FILE"
 		;;
 	crl)
 		openssl ca -config "$CA_CONFIG_FILE" -gencrl -out "$CA_CRL_FILE"
