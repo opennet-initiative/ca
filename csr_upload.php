@@ -116,7 +116,15 @@ if (in_array($extension, $allowedExts)
       if (isset($cnFilter[$cn_tail])) 
       {
         $cnFilterValue = $cnFilter[$cn_tail];
-        $err2++;
+	// check for old aps.on naming scheme
+	if (($cn_tail == "aps.on") && ($cn_len < 4))
+	{
+          if ($debug) echo "<tr><td>CN Check:</td><td>Naming scheme 'aps.on' check failed.</td></tr>";
+	}
+	else
+	{
+          $err2++;
+	}
       }
       // debug only (do not show to the user in normal operation)
       if ($debug) echo "<tr><td>CN Filter:</td><td>" . $cnFilterValue . "</td></tr>";
