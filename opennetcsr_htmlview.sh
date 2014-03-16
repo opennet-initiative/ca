@@ -71,8 +71,10 @@ echo "<th>CC-Mail (opt)</th>"
 echo "<th>Action</th>"
 echo "</tr>"
 
+# calculate number of table rows
+counter=$(( $(ls -l $CSR_JSON_FILES | grep -v ^l | wc -l) +1))
+
 # table body
-counter=0
 declare -A output
 while read -r line
 do
@@ -85,7 +87,7 @@ do
 	output["$key"]="${value##*( )}"
 	# fill table
 	case "$key" in
-		"{") counter=$((counter +1)) && echo -e "<tr>\n<td>$counter</td>" && declare -A output
+		"{") counter=$((counter -1)) && echo -e "<tr>\n<td>$counter</td>" && declare -A output
 			;;
 		"status") 
 			case $value in
@@ -97,10 +99,10 @@ do
 					;;
 			esac
 			;;
-		"}") echo -e "<td>${output["status"]}</td>\n<td>${output["cn_filter"]}</td>\n</td>\n<td>${output["upload_timestamp"]}</td>\n<td>${output["subject_cn"]}</td>" && if "$OUTPUT_HIDE"; then echo -e "<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>disabled</i></td>"; else echo -e "<td>${output["subject_o"]}</td>\n<td>${output["subject_mail"]}</td>\n<td>${output["upload_advisor"]}</td>\n</td>\n<td>${output["upload_ccmail"]}</td>\n</td>\n<td>${output["action"]}</td>\n</tr>"; fi
+		"}") echo -e "<td>${output["status"]}</td>\n<td>${output["cn_filter"]}</td>\n</td>\n<td>$(date -d @"${output["upload_timestamp"]}" "+%Y-%m-%d")</td>\n<td>${output["subject_cn"]}</td>" && if "$OUTPUT_HIDE"; then echo -e "<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>disabled</i></td>"; else echo -e "<td>${output["subject_o"]}</td>\n<td>${output["subject_mail"]}</td>\n<td>${output["upload_advisor"]}</td>\n</td>\n<td>${output["upload_ccmail"]}</td>\n</td>\n<td>${output["action"]}</td>\n</tr>"; fi
 			;;
 	esac
-done < <({ echo -n "["; for f in $CSR_JSON_FILES; do cat $f; echo -n ","; done; echo -n "]"; echo; } | sed 's/,]$/]/' | jq 'sort_by(.upload_timestamp) | .[]' | sed -e 's/"//g' -e 's/,$//' -e 's/  //g') 
+done < <({ echo -n "["; for f in $CSR_JSON_FILES; do cat $f; echo -n ","; done; echo -n "]"; echo; } | sed 's/,]$/]/' | jq 'sort_by(.upload_timestamp) | reverse | .[]' | sed -e 's/"//g' -e 's/,$//' -e 's/  //g') 
 
 # table footer
 echo "</table>"
