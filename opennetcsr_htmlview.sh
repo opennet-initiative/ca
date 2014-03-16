@@ -51,6 +51,16 @@ case "$ACTION" in
 echo "<html>"
 echo "<head>"
 echo "<title>Opennet CA - Certificate Signing Request Listing</title>"
+echo "<script type=\"text/javascript\">"
+echo "  function toggle(control) {"
+echo "    var elem = document.getElementById(control);"
+echo "    if(elem.style.display == \"none\") {"
+echo "      elem.style.display = \"block\";"
+echo "    } else {"
+echo "      elem.style.display = \"none\";"
+echo "    }"
+echo "  }"
+echo "</script>"
 echo "</head>"
 echo "<body>"
 echo "<h1>Opennet Certification Authority</h1>"
@@ -65,9 +75,8 @@ echo "<th>CA</th>"
 echo "<th>Timestamp</th>"
 echo "<th>Node</th>"
 echo "<th>Name</th>"
-echo "<th>Mail</th>"
 echo "<th>Advisor (opt)</th>"
-echo "<th>CC-Mail (opt)</th>"
+echo "<th>Metadata</th>"
 echo "<th>Action</th>"
 echo "</tr>"
 
@@ -99,7 +108,7 @@ do
 					;;
 			esac
 			;;
-		"}") echo -e "<td>${output["status"]}</td>\n<td>${output["cn_filter"]}</td>\n</td>\n<td>$(date -d @"${output["upload_timestamp"]}" "+%Y-%m-%d")</td>\n<td>${output["subject_cn"]}</td>" && if "$OUTPUT_HIDE"; then echo -e "<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>disabled</i></td>"; else echo -e "<td>${output["subject_o"]}</td>\n<td>${output["subject_mail"]}</td>\n<td>${output["upload_advisor"]}</td>\n</td>\n<td>${output["upload_ccmail"]}</td>\n</td>\n<td>${output["action"]}</td>\n</tr>"; fi
+		"}") echo -e "<td>${output["status"]}</td>\n<td>${output["cn_filter"]}</td>\n</td>\n<td>$(date -d @"${output["upload_timestamp"]}" "+%Y-%m-%d")</td>\n<td>${output["subject_cn"]}</td>" && if "$OUTPUT_HIDE"; then echo -e "<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>disabled</i></td>"; else echo -e "<td>${output["subject_o"]}</td>\n<td>${output["upload_advisor"]}</td>\n<td><a href=\"javascript:toggle('json_${output["name"]}')\"><small>(Show or hide JSON)</small></a><div id=\"json_${output["name"]}\" style=\"display:none\"><pre>$(jq . $CSR_HOME/$CSR_UPLOADDIR/${output["name"]}.csr.json)</pre></div></td>\n</td>\n<td>${output["action"]}</td>\n</tr>"; fi
 			;;
 	esac
 done < <({ echo -n "["; for f in $CSR_JSON_FILES; do cat $f; echo -n ","; done; echo -n "]"; echo; } | sed 's/,]$/]/' | jq 'sort_by(.upload_timestamp) | reverse | .[]' | sed -e 's/"//g' -e 's/,$//' -e 's/  //g') 

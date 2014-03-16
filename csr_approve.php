@@ -81,7 +81,7 @@ if (in_array($extension, $allowedExts))
         echo "<tr><td>CA:</td><td>" . $cn_filter . "</td></tr>";
         echo "<tr><td>Approver:&nbsp;</td><td>subject=" . $approver_dn . ", serial=" . $approver_sn . "</td></tr>";
 	echo "<tr><td>Mail:</td><td>to:" . $mailto . " cc:" . $mailcc . "</td></tr>";
-        echo "<tr><td>JSON:</td><td><a href=\"javascript:toggle('json')\"><small>(Show or hide JSON / Zeige oder verstecke JSON)</small></a><div id=\"json\" style=\"display:none\"><pre>" . $jsontext . "</pre></div></td></tr>";
+        echo "<tr><td>Metadata:</td><td><a href=\"javascript:toggle('json')\"><small>(Show or hide JSON / Zeige oder verstecke JSON)</small></a><div id=\"json\" style=\"display:none\"><pre>" . $jsontext . "</pre></div></td></tr>";
         echo "</table>";
         // approval form
         echo "<p>";
