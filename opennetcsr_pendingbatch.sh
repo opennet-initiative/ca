@@ -80,7 +80,7 @@ done < <({ echo -n "["; for f in $CSR_JSON_FILES; do cat $f; echo -n ","; done; 
 if "$MAIL"; then
 	if [ "$counter" -gt 0 ]; then
 		echo -n "Send mail to '$CSR_MAILTO'... "	
-		mailtext="$CSR_MAILTEXT_PENDING\n$mailtext\n\n$CSR_MAILFOOTER"
+		mailtext="$CSR_MAILTEXT_PENDING\n$mailtext\n\nview: $CSR_WEBINTERNAL\n\n$CSR_MAILFOOTER"
 		echo -e "$mailtext" | mailx -s "$CSR_MAILSUBJECT_PENDING" "$CSR_MAILTO" && echo "done." || "failed."
 	else
 		echo "No pending requests. No mail send."
