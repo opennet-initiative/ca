@@ -1,7 +1,7 @@
 <?php
 // config variables
 $debug = false;
-$debug = true;
+//$debug = true;
 $allowedExts = array("csr");
 $allowedType = array(
   "application/octet-stream", 
@@ -12,8 +12,8 @@ $cnFilter = array(
   "aps.on" => "vpnuser",
   "mobile.on" => "vpnuser",
   "ugw.on" => "vpnugw",
-  "client.on" => "client");
-//$mailto = "csr@opennet-initiative.de";
+  "client.on" => "client",
+  "opennet-initiative.de" => "server");
 $mailto = "Opennet CSR Team <csr@opennet-initiative.de>";
 $mailfrom = "Opennet CA <opennetca@opennet-initiative.de>";
 $mailsubject = "Opennet CA (upload): Signing Request / Zertifikatsanfrage";
