@@ -117,9 +117,9 @@ if (in_array($extension, $allowedExts)
       {
         $cnFilterValue = $cnFilter[$cn_tail];
 	// check for old aps.on naming scheme
-	if (($cn_tail == "aps.on") && ($cn_len < 4))
+	if ((($cn_tail == "aps.on")||($cn_tail == "ugw.on")) && ($cn_len < 4))
 	{
-          if ($debug) echo "<tr><td>CN Check:</td><td>Naming scheme 'aps.on' check failed.</td></tr>";
+          if ($debug) echo "<tr><td>CN Check:</td><td>Naming scheme 'aps/ugw.on' check failed.</td></tr>";
 	}
 	else
 	{
