@@ -18,7 +18,7 @@ $mailto = "Opennet CSR Team <csr@opennet-initiative.de>";
 $mailfrom = "Opennet CA <opennetca@opennet-initiative.de>";
 $mailsubject = "Opennet CA (upload): Signing Request / Zertifikatsanfrage";
 $mailfooter = "-- \r\nOpennet Initiative e.V.\r\nhttp://www.opennet-initiative.de\r\nCA Status: http://ca.opennet-initiative.de";
-$approveurl = "https://ca.opennet-initiative.de:444/internal/csr_approve.php?";
+$approveurl = "https://ca.opennet-initiative.de/internal/csr_approve.php?";
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
