@@ -33,7 +33,12 @@ CA_CRL_FILE="$CA_HOME/$CA_CRLDIR/$CA_CRLNAME"
 
 # generate random serial for CA_SERIAL_FILE
 get_random_serial() {
-	hexdump -n8 -e '/1 "%02X"' /dev/random
+	local serial="*"
+	# loop until valid serial found
+	while [[ "$serial" =~ "*" ]]; do
+		serial="$(hexdump -n8 -e '/1 "%02X"' /dev/random)"
+	done
+	echo "$serial"
 }
 
 # parse key-value from openssl subject string
