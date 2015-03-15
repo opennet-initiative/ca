@@ -83,7 +83,7 @@ match_string_in_file() {
 	local file="$2"
 	local exclude="$3"
 	local lines
-	echo "$(grep "$string" "$file" | grep -v "$exclude")"
+	echo "$(grep -F "$string" "$file" | grep -v "$exclude")"
 }
 
 # copy timestamped file to CA_BACKUP_DIR 
