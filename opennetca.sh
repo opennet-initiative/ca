@@ -129,7 +129,7 @@ case "$ACTION" in
 		CSR_SUBJECT="$(openssl req -subject -noout -in $CSR_FILE)"
 		CSR_CN="$(get_key_from_subject "$CSR_SUBJECT" "CN")"
 		CSR_MAIL="$(get_key_from_subject "$CSR_SUBJECT" "emailAddress")"
-		CSR_MATCH="$(match_string_in_file "$CSR_CN" "$CA_INDEX_FILE" "^R")"
+		CSR_MATCH="$(match_string_in_file "=$CSR_CN" "$CA_INDEX_FILE" "^R")"
 		[ -n "$CSR_MATCH" ] && echo -e >&2 "Error - CSR CN found in certificate list, revoke old cert first:\n$CSR_MATCH" && exit 3;
 		[ -e "$CERT_FILE" ] && echo >&2 "Error - CRT file already exists: $CERT_FILE, same cert signed or revoked?; if new and unsigned check your CSR filename" && exit 4
 		match_string_in_array "$CSR_CN" "$CA_CSRCN" || { echo >&2 "Error - CSR CN filter mismatch, found '$CSR_CN', need '$CA_CSRCN'" && exit 5; }
