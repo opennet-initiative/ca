@@ -1,0 +1,20 @@
+  ____                              _      _____          
+ / __ \                            | |    / ____|   /\    
+| |  | |_ __   ___ _ __  _ __   ___| |_  | |       /  \   
+| |  | | '_ \ / _ \ '_ \| '_ \ / _ \ __| | |      / /\ \  
+| |__| | |_) |  __/ | | | | | |  __/ |_  | |____ / ____ \ 
+ \____/| .__/ \___|_| |_|_| |_|\___|\__|  \_____/_/    \_\
+       | |                                                
+       |_|                                                
+
++++++++++++++++++++++++++++
+
+Zertifikate generieren:
+
+ -> Upload per https://ca.opennet-initiative.de/csr/
+ -> Freigabe per https://ca.opennet-initiative.de/internal/
+ -> Zertifikat wird automatisch per Mail versendet
+
++++++++++++++++++++++++++++
+
+Bei Fragen bitte an Opennet Admin Mailingliste wenden.
