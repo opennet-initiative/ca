@@ -108,10 +108,10 @@ do
 					;;
 			esac
 			;;
-		"}") echo -e "<td>${output["status"]}</td>\n<td>${output["cn_filter"]}</td>\n</td>\n<td>$(date -d @"${output["upload_timestamp"]}" "+%Y-%m-%d")</td>\n<td>${output["subject_cn"]}</td>" && if "$OUTPUT_HIDE"; then echo -e "<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>disabled</i></td>"; else echo -e "<td>${output["subject_o"]}</td>\n<td>${output["upload_advisor"]}</td>\n<td><a href=\"javascript:toggle('json_${output["name"]}')\"><small>(Show or hide JSON)</small></a><div id=\"json_${output["name"]}\" style=\"display:none\"><pre>$(jq . $CSR_HOME/$CSR_UPLOADDIR/${output["name"]}.csr.json)</pre></div></td>\n</td>\n<td>${output["action"]}</td>\n</tr>"; fi
+		"}") echo -e "<td>${output["status"]}</td>\n<td>${output["cn_filter"]}</td>\n</td>\n<td>$(date -d @"${output["upload_timestamp"]}" "+%Y-%m-%d")</td>\n<td>${output["subject_cn"]}</td>" && if "$OUTPUT_HIDE"; then echo -e "<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>hidden</i></td>\n<td><i>disabled</i></td>"; else echo -e "<td>${output["subject_o"]}</td>\n<td>${output["upload_advisor"]}</td>\n<td><a href=\"javascript:toggle('json_${output["name"]}')\"><small>(Show or hide JSON)</small></a><div id=\"json_${output["name"]}\" style=\"display:none\"><pre>$(jq --sort-keys . $CSR_HOME/$CSR_UPLOADDIR/${output["name"]}.csr.json)</pre></div></td>\n</td>\n<td>${output["action"]}</td>\n</tr>"; fi
 			;;
 	esac
-done < <({ echo -n "["; for f in $CSR_JSON_FILES; do cat $f; echo -n ","; done; echo -n "]"; echo; } | sed 's/,]$/]/' | jq 'sort_by(.upload_timestamp) | reverse | .[]' | sed -e 's/"//g' -e 's/,$//' -e 's/  //g') 
+done < <({ echo -n "["; for f in $CSR_JSON_FILES; do cat $f; echo -n ","; done; echo -n "]"; echo; } | sed 's/,]$/]/' | jq --sort-keys 'sort_by(.upload_timestamp) | reverse | .[]' | sed -e 's/"//g' -e 's/,$//' -e 's/  //g') 
 
 # table footer
 echo "</table>"
