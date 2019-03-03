@@ -4,7 +4,7 @@ $debug = false;
 //$debug = true;
 $allowedExts = array("csr");
 $allowedStatus = array("CSR", "Error");
-$uploadFolder = "/var/www/csr_upload";
+$uploadFolder = "/var/www/opennetca_upload";
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"

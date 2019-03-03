@@ -70,7 +70,7 @@ class OpennetCaApiServer
 					header('HTTP/1.1 404 Not Found');
 				} else {
 					header('Content-Type: application/pkcs10');
-					echo file_get_contents('/var/www/csr_upload/vpnuser_27.aps.on_b5087400.csr');
+					echo file_get_contents('/var/www/opennetca_upload/vpnuser_27.aps.on_b5087400.csr');
 				}
 				break;
 			default:

@@ -7,7 +7,7 @@ $allowedType = array(
   "application/octet-stream", 
   "application/pkcs10",
   "text/opennet_csr");
-$uploadFolder = "/var/www/csr_upload";
+$uploadFolder = "/var/www/opennetca_upload";
 $cnFilter = array(
   "aps.on" => "vpnuser",
   "mobile.on" => "vpnuser",
