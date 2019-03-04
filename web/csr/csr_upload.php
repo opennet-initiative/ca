@@ -18,7 +18,7 @@ $mailto = "Opennet CSR Team <csr@opennet-initiative.de>";
 $mailfrom = "Opennet CA <opennetca@opennet-initiative.de>";
 $mailsubject = "Opennet CA (upload): Signing Request / Zertifikatsanfrage";
 $mailfooter = "-- \r\nOpennet Initiative e.V.\r\nhttp://www.opennet-initiative.de\r\nCA Status: http://ca.opennet-initiative.de";
-$approveurl = "/internal/csr_approve.php?";
+$approveurl = "https://ca-test.opennet-initiative.de/internal/csr_approve.php?";
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
@@ -78,7 +78,7 @@ if (in_array($extension, $allowedExts)
     // check file via openssl
     $digest = shell_exec("openssl dgst -sha256 -c " . $store . " | cut -d ' ' -f2");
     $digest_short = hash("crc32", $digest);
-    $subject = explode("/", shell_exec("openssl req -subject -noout -in " . $store));
+    $subject = explode(",", shell_exec("openssl req -subject -noout -in " . $store));
     $subject_o = "<i>Error</i>";
     $subject_cn = "<i>Error</i>";
     $subject_mail = "<i>Error</i>";
@@ -86,6 +86,8 @@ if (in_array($extension, $allowedExts)
     foreach($subject as $subject_part)
     {
       list($key, $value) = explode("=", $subject_part);
+      $key=trim($key);
+      $value=trim($value);
       switch($key) 
       {
         case "O": $subject_o = $value; $err++; break;
