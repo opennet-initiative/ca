@@ -4,29 +4,24 @@
   <head>
     <title>Opennet CA - Opennet Initiative e.V.</title> 
   </head>
-
   <body>
     <h2>Opennet Certification Authority</h2>
-    Welcome. You can upload your Certificate Signing Request (CSR) here.</br>
-    Willkommen. Hier kannst du deinen Zertifikatsanfrage (CSR) hochladen.
-    <h3>CSR Upload</h3>
-    <div style="background-color:#eeeeee;padding:5px;width:450px"> 
-    Please select your CSR file. Bitte deine CSR Datei ausw&auml;hlen.
-    <p></p>
-    <form action="csr_upload.php" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" id="file"><br/>
-    <small>
-    <input type="text" name="opt_name" size="30" maxlength="255"> Advisor / Betreuer (Optional)<br/>
-    <input type="text" name="opt_mail" size="30" maxlength="255"> CC E-Mail (Optional)<br/>
-    <input type="submit" name="submit" value="Submit / &Uuml;bertragen">
-    </small>
-    </form>
-    </div>
+    Welcome. This is the Opennet CA. / 
+    Willkommen. Dies ist die Opennet CA.
+    <h3>Upload</h3>
+    <span style="background-color:#eeeeee;padding:5px">
+    Please go to the / Bitte benutze unseren <a href="csr/">CSR Upload</a>.
+    </span>
     <p>
-    Back to / Zur&uuml;ck zu: <a href="/">Opennet CA</a>.
+    <h3>Status</h3>
+    <li><a href="csr.html">CSR Status</a>
+    <li><a href="ca.html">CA Status</a>
+    <li><a href="https://ca.opennet-initiative.de/internal/">CA Internal (HTTPS)</a> <i>- Login Required / Anmeldung erforderlich</i>
+    <p>
+    Further information: <a href="https://wiki.opennet-initiative.de/wiki/Opennet_CA">Opennet CA wiki page</a> 
     </p>
     <p>
-    <img src="/Opennet_logo_quer.gif">
+    <img src="Opennet_logo_quer.gif">
     </p>
   </body>
 </html>
