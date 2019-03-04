@@ -1,4 +1,4 @@
-l?php
+<?php
 // config variables
 $debug = false;
 //$debug = true;
