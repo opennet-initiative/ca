@@ -41,15 +41,27 @@ get_random_serial() {
 	echo "$serial"
 }
 
-# provide normalized openssl request subject string from csr
-get_subject_from_csr() {
-	local csr="$1"
-	# get subject from csr via openssql-req
-	local req_input="$(openssl req -subject -noout -in $csr)"
+# provide normalized openssl subject string
+get_subject_from_openssl() {
+	local file="$1"
+  local command="$2"
+	# get subject from file via openssl
+	local input="$(openssl $command -subject -noout -in $file)"
 	# normalize output (remove whitespaces, use / as delimiter)
-	local req_norm="${req_input// = /=}"
-	local req_output="${req_norm//, //}"
-	echo "$req_output"
+	local norm="${input// = /=}"
+	local output="${norm//, //}"
+	echo "$output"
+}
+
+# provide normalized openssl request subject string from csr
+get_subject_from_cert() {
+  local cert="$1"
+  # get subject from csr via openssql-req 
+  local req_input="$(openssl  -subject -noout -in $cert)"
+  # normalize output (remove whitespaces, use / as delimiter)
+  local req_norm="${req_input// = /=}"
+  local req_output="${req_norm//, //}"
+  echo "$req_output"
 }
 
 # parse key-value from openssl subject string
@@ -137,7 +149,7 @@ case "$ACTION" in
 		CSR_FILE="$CA_CSR_DIR/$1.csr"
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
-		CSR_SUBJECT="$(get_subject_from_csr "$CSR_FILE")"
+		CSR_SUBJECT="$(get_subject_from_openssl "$CSR_FILE" req)"
 		CSR_CN="$(get_key_from_subject "$CSR_SUBJECT" "CN")"
 		CSR_MAIL="$(get_key_from_subject "$CSR_SUBJECT" "emailAddress")"
 		CSR_MATCH="$(match_string_in_file "=$CSR_CN" "$CA_INDEX_FILE" "^R")"
@@ -159,7 +171,7 @@ case "$ACTION" in
 	revoke|revoke_batch)
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CERT_FILE" ] && echo >&2 "Error - CRT file not found: $CERT_FILE" && exit 2
-		CERT_SUBJECT="$(openssl x509 -subject -noout -in $CERT_FILE)"
+		CERT_SUBJECT="$(get_subject_from_openssl "$CERT_FILE" x509)"
 		CERT_CN="$(get_key_from_subject "$CERT_SUBJECT" "CN")"
 		CERT_MAIL="$(get_key_from_subject "$CERT_SUBJECT" "emailAddress")"	
 		CERT_SERIAL="$(openssl x509 -serial -noout -in $CERT_FILE)"
