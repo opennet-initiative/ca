@@ -188,7 +188,9 @@ case "$ACTION" in
 			read REPLY
 			[ "$REPLY" != "yes" ] && echo "Revocation aborted." && exit 0
 		fi
-		openssl ca -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
+		BATCH_CMD=""
+		[ "$ACTION" = "revoke_batch" ] && BATCH_CMD="-batch"
+		openssl ca $BATCH_CMD -config "$CA_CONFIG_FILE" -revoke "$CERT_FILE"
 		backup_file "$CERT_FILE"
 		backup_file "$CA_INDEX_FILE"
 		echo "$(date): $CERT_FILE revoked, cn $CERT_CN, serial $CERT_SERIAL, mail $CERT_MAIL" >> "$CA_LOG"
@@ -210,12 +212,13 @@ case "$ACTION" in
 		;;
 	help|--help)
 		echo "Usage: $(basename "$0")"
-		echo "	sign CSR_NAME [CCMAIL]       - sign a certificate request"
-		echo "	sign_batch CSR_NAME [CCMAIL] - sign in batch mode (non interative)"
-		echo "	revoke CERT_NAME [CCMAIL]    - revoke a certificate"
-		echo "	crl                          - generate revocation list"
-		echo "	list CERT_CN                 - list certs for common name"
-		echo "	help                         - show this help"
+		echo "	sign CSR_NAME [CCMAIL]         - sign a certificate request"
+		echo "	sign_batch CSR_NAME [CCMAIL]   - sign in batch mode (non interative)"
+		echo "	revoke CERT_NAME [CCMAIL]      - revoke a certificate"
+		echo "  revoke_batch CSR_NAME [CCMAIL] - revoke in batch mode (non interative)"
+		echo "	crl                            - generate revocation list"
+		echo "	list CERT_CN                   - list certs for common name"
+		echo "	help                           - show this help"
 		;;
 	*)
 		echo >&2 "Invalid action: $ACTION"
