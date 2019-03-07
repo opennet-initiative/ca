@@ -41,6 +41,17 @@ get_random_serial() {
 	echo "$serial"
 }
 
+# provide normalized openssl request subject string from csr
+get_subject_from_csr() {
+	local csr="$1"
+	# get subject from csr via openssql-req
+	local req_input="$(openssl req -subject -noout -in $csr)"
+	# normalize output (remove whitespaces, use / as delimiter)
+	local req_norm="${req_input// = /=}"
+	local req_output="${req_norm//, //}"
+	echo "$req_output"
+}
+
 # parse key-value from openssl subject string
 get_key_from_subject() {
 	local subject="$1"
@@ -126,7 +137,7 @@ case "$ACTION" in
 		CSR_FILE="$CA_CSR_DIR/$1.csr"
 		CERT_FILE="$CA_CERT_DIR/$1.crt"
 		[ ! -e "$CSR_FILE" ] && echo >&2 "Error - CSR file not found: $CSR_FILE" && exit 2
-		CSR_SUBJECT="$(openssl req -subject -noout -in $CSR_FILE)"
+		CSR_SUBJECT="$(get_subject_from_csr "$CSR_FILE")"
 		CSR_CN="$(get_key_from_subject "$CSR_SUBJECT" "CN")"
 		CSR_MAIL="$(get_key_from_subject "$CSR_SUBJECT" "emailAddress")"
 		CSR_MATCH="$(match_string_in_file "=$CSR_CN" "$CA_INDEX_FILE" "^R")"
