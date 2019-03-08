@@ -76,8 +76,8 @@ do
 				error=false
 				errmsg="$($revokecmd ${output["name"]} ${output["upload_ccmail"]} 2>&1 1>&3)" || error=true
 				exec 3>&-
-				# filter first line of output and trimm
-				errmsg="$(echo -e $errmsg | head -n1 | xargs)"
+				# filter first line of output (workaround, missing -batch mode at revoke) 
+				errmsg="$(echo -e $errmsg | sed '1 d')"
 				timestamp=$(date +%s)
 				# check for revoke result, prepare new json vars
 				if "$error";

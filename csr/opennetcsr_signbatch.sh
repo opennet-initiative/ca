@@ -76,8 +76,6 @@ do
 				error=false
 				errmsg="$($signcmd ${output["name"]} ${output["upload_ccmail"]} 2>&1 1>&3)" || error=true
 				exec 3>&-
-				# filter first line of output and trimm
-				errmsg="$(echo -e $errmsg | head -n1 | xargs)"
 				timestamp=$(date +%s)
 				# check for sign result, prepare new json vars
 				if "$error";
