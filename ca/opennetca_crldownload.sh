@@ -10,7 +10,7 @@
 set -eu
 
 # static script variables
-CA_URL="http://ca.opennet-initiative.de"
+CA_URL="https://ca.opennet-initiative.de"
 CA_TMP=".tmp"
 
 # retrieve script parameter
