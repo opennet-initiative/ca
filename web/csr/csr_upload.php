@@ -9,9 +9,9 @@ $allowedType = array(
   "text/opennet_csr");
 $uploadFolder = "/var/www/opennetca_upload";
 $cnFilter = array(
-  "aps.on" => "vpnuser",
-  "mobile.on" => "vpnuser",
-  "ugw.on" => "vpnugw",
+  "aps.on" => "vpn-user",
+  "mobile.on" => "vpn-user",
+  "ugw.on" => "vpn-ugw",
   "client.on" => "client",
   "opennet-initiative.de" => "server");
 $mailto = "Opennet CSR Team <csr@opennet-initiative.de>";
