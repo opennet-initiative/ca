@@ -4,6 +4,7 @@ $debug = false;
 //$debug = true;
 $allowedExts = array("csr");
 $allowedType = array(
+  "application/x-x509-ca-cert",
   "application/octet-stream",
   "application/pkcs10",
   "text/opennet_csr");
